@@ -186,24 +186,37 @@ AddEventHandler('playerDropped', function(reason)
 end)
 
 -- ============================================================
--- SERVER SIDE BLN-NOTIFY HELPER
+-- SERVER SIDE NOTIFY HELPER (ox_lib or bln-notify)
 -- ============================================================
+
+local notifyConfig = {
+    ['success'] = { template = "SUCCESS", title = "Success", icon = "check",       oxType = "success" },
+    ['error']   = { template = "ERROR",   title = "Error",   icon = "xmark",       oxType = "error"   },
+    ['warning'] = {
+        template = nil,
+        title    = "~#f39c12~Warning~e~",
+        icon     = "warning",
+        oxType   = "warning"
+    },
+    ['info']    = { template = "INFO", title = "Info", icon = "circle-info", oxType = "inform" },
+}
 
 local function SendNotifyToClient(source, message, type, duration)
     duration = duration or 5000
 
-    local notifyConfig = {
-        ['success'] = { template = "SUCCESS" },
-        ['error']   = { template = "ERROR"   },
-        ['warning'] = {
-            template = nil,
-            title    = "~#f39c12~Warning~e~",
-            icon     = "warning"
-        },
-        ['info']    = { template = "INFO" },
-    }
-
     local config = notifyConfig[type] or notifyConfig['info']
+
+    if Config.NotifyType == 'ox_lib' then
+        TriggerClientEvent("ox_lib:notify", source, {
+            title       = config.title,
+            description = message,
+            type        = config.oxType,
+            icon        = config.icon,
+            duration    = duration,
+            position    = 'top-right',
+        })
+        return
+    end
 
     if config.template then
         TriggerClientEvent("bln_notify:send", source, {

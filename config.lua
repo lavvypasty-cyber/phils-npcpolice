@@ -26,7 +26,7 @@ Config.WantedLevels = {
 }
 
 -- Notification Settings
-Config.NotifyType = 'bln-notify' -- Using bln-notify
+Config.NotifyType = 'ox_lib' -- 'ox_lib' or 'bln-notify'
 
 -- Police Zone Configuration
 Config.Police = {

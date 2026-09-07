@@ -47,10 +47,19 @@ local function DebugPrint(msg)
 end
 
 -- ============================================================
--- BLN-NOTIFY (with anti-spam)
+-- NOTIFICATIONS (ox_lib or bln-notify, with anti-spam)
 -- ============================================================
 
 local notifyCooldowns = {}
+
+-- Shared notify metadata, keyed by our internal "type"
+local notifyConfig = {
+    ['success'] = { blnTemplate = "SUCCESS", title = "Success",  icon = "check",    oxType = "success" },
+    ['error']   = { blnTemplate = "ERROR",   title = "Error",    icon = "xmark",    oxType = "error"   },
+    ['warning'] = { blnTemplate = nil,       title = "~#f39c12~Warning~e~", icon = "warning", oxType = "warning" },
+    ['info']    = { blnTemplate = "INFO",    title = "Info",     icon = "circle-info", oxType = "inform" },
+    ['tick']    = { blnTemplate = "INFO",    title = "Info",     icon = "circle-info", oxType = "inform" },
+}
 
 local function SendNotify(message, type, duration, cooldownKey, cooldownMs)
     duration   = duration or 5000
@@ -65,33 +74,34 @@ local function SendNotify(message, type, duration, cooldownKey, cooldownMs)
         notifyCooldowns[cooldownKey] = now
     end
 
-    local notifyConfig = {
-        ['success'] = { template = "SUCCESS" },
-        ['error']   = { template = "ERROR"   },
-        ['warning'] = {
-            template = nil,
-            title    = "~#f39c12~Warning~e~",
-            icon     = "warning"
-        },
-        ['info']    = { template = "INFO" },
-    }
-
     local cfg = notifyConfig[type] or notifyConfig['info']
 
-    if cfg.template then
-        TriggerEvent("bln_notify:send", {
-            description = message,
-            duration    = duration,
-            placement   = "top-right",
-        }, cfg.template)
-    else
-        TriggerEvent("bln_notify:send", {
+    if Config.NotifyType == 'ox_lib' then
+        lib.notify({
             title       = cfg.title,
             description = message,
+            type        = cfg.oxType,
             icon        = cfg.icon,
             duration    = duration,
-            placement   = "top-right",
+            position    = 'top-right',
         })
+    else
+        -- bln-notify
+        if cfg.blnTemplate then
+            TriggerEvent("bln_notify:send", {
+                description = message,
+                duration    = duration,
+                placement   = "top-right",
+            }, cfg.blnTemplate)
+        else
+            TriggerEvent("bln_notify:send", {
+                title       = cfg.title,
+                description = message,
+                icon        = cfg.icon,
+                duration    = duration,
+                placement   = "top-right",
+            })
+        end
     end
 end
 
